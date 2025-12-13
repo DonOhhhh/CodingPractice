@@ -13,6 +13,9 @@ CodingPractice/
 │   │       └── ...
 │   ├── LeetCode/
 │   └── ...
+├── playground/                # Free coding area (auto-cleanup)
+│   ├── run.sh                 # Playground runner script
+│   └── ...
 ├── runner/                    # Rust-based test runner source
 ├── bin/                       # Compiled binaries (auto-generated)
 └── README.md
@@ -81,3 +84,21 @@ runner solution_bfs.cpp
    - `data/2.in`, `data/2.out`
 4. Write your solution (e.g., `solution.cpp`).
 5. Run `runner solution.cpp`.
+
+## Playground (Free Coding)
+
+A dedicated space for testing code snippets without the structure of a problem.
+
+- **Directory**: `playground/`
+- **Runner**: `./run.sh <file>`
+- **Features**:
+    - Compiles to `../bin/temp_exec` to keep the playground clean.
+    - Runs the executable immediately.
+    - Supports C++, Rust, C, and Python.
+    - **C++ Compiler**: Uses `clang++-19` with C++23 support (`-std=c++23`).
+
+### Usage
+```bash
+cd playground
+./run.sh hello.cpp
+```
