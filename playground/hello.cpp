@@ -1,20 +1,21 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+int func2(const vector<int> &v1, int n) {
+  vector<int> freq(100, 0);
+  for (auto i : v1) {
+    if (freq[100 - i])
+      return 1;
+    freq[i]++;
+  }
+  return 0;
+}
+
 int main(void) {
-  vector<int> v1(3, 5); // {5,5,5};
-  cout << v1.size() << '\n'; // 3
-  v1.push_back(7); // {5,5,5,7};
-
-  vector<int> v2(2); // {0,0};
-  v2.insert(v2.begin()+1, 3); // {0,3,0};
-
-  vector<int> v3 = {1,2,3,4}; // {1,2,3,4}
-  v3.erase(v3.begin()+2); // {1,2,4};
-
-  vector<int> v4; // {}
-  v4 = v3; // {1,2,4}
-  cout << v4[0] << v4[1] << v4[2] << '\n';
-  v4.pop_back(); // {1,2}
-  v4.clear(); // {}
+  ios::sync_with_stdio(0);
+  cin.tie(0);
+  cout << func2({1, 23, 53, 77, 60}, 5) << '\n';
+  cout << func2({1, 52, 48}, 3) << '\n';
+  cout << func2({50, 42}, 2) << '\n';
+  cout << func2({4, 13, 63, 87}, 4) << '\n';
 }
