@@ -2,6 +2,8 @@
 
 # Get the source file from argument
 SOURCE_FILE="$1"
+shift
+
 
 # Check if file is provided
 if [ -z "$SOURCE_FILE" ]; then
@@ -43,7 +45,7 @@ esac
 if [ $COMPILE_STATUS -eq 0 ]; then
     echo "[*] Compilation successful. Running output..."
     echo "=========================================="
-    "$EXEC_TARGET"
+    "$EXEC_TARGET" "$@"
     echo -e "\n=========================================="
     
     # Cleanup: The user requested files to disappear after compilation/run if possible.

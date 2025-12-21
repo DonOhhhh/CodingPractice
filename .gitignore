@@ -8,7 +8,12 @@
 *.o
 target/
 .DS_Store
+
 # Ignore all .out files
 *.out
+
 # But keep data .out files
 !**/data/*.out
+
+# Ignore all playground files
+/playground/*
