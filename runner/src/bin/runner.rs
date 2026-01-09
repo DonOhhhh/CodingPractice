@@ -1,6 +1,6 @@
 use std::env;
 use std::fs;
-use std::io::{self, Read};
+
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -29,8 +29,6 @@ fn main() {
             break;
         }
         if !project_root.pop() {
-            // Reached root without finding project root; fallback to CWD or user home?
-            // Fallback to original execution directory if we can't find the pattern
             project_root = env::current_dir().expect("Failed to get current directory");
             break;
         }
@@ -79,29 +77,20 @@ fn main() {
     }
 
     // Execution & Grading
-    // Ensure we handle relative paths for source_path correctly if we changed directory?
-    // Actually we didn't change CWD, just calculated paths.
-    // source_path is likely relative to CWD.
-    // parent_dir logic relies on source_path.
-
-    // If source_path is relative, it needs to be canonicalized or treated relative to original CWD.
-    // source_path.parent() works on relative paths.
-    
-    // BUT: If the user passes problems/BOJ/1000/solution.cpp, and we are in root, it works.
-    // If user is in problems/BOJ/1000 and passes solution.cpp:
-    // source_path is "solution.cpp". parent is "". data is "data". Correct.
-    
     let parent_dir = if source_path.is_absolute() {
         source_path.parent().unwrap().to_path_buf()
     } else {
         let current = env::current_dir().unwrap();
         current.join(source_path).parent().unwrap().to_path_buf()
     };
-    
+
     let data_dir = parent_dir.join("data");
 
     if !data_dir.exists() {
-        println!("No data directory found at {}, skipping tests.", data_dir.display());
+        println!(
+            "No data directory found at {}, skipping tests.",
+            data_dir.display()
+        );
         return;
     }
 
@@ -112,8 +101,6 @@ fn main() {
         .filter(|path| path.extension().map_or(false, |ext| ext == "in"))
         .collect();
 
-    // Sort files to ensure deterministic order (1.in, 2.in, etc.)
-    // Simple string sort for now; numerical sort would be better but this is MVP
     input_files.sort();
 
     for input_file in input_files {
@@ -128,7 +115,7 @@ fn main() {
         print!("Test Case {}: ", file_stem);
 
         let input_file_handle = fs::File::open(&input_file).expect("Failed to open input file");
-        
+
         // Execute the binary
         let output = Command::new(&exec_path)
             .stdin(Stdio::from(input_file_handle))
@@ -138,7 +125,7 @@ fn main() {
             .expect("Failed to execute binary");
 
         let expected_output = fs::read_to_string(&output_file).expect("Failed to read output file");
-        
+
         let actual_str = String::from_utf8_lossy(&output.stdout);
         let expected_trimmed = expected_output.trim();
         let actual_trimmed = actual_str.trim();
@@ -151,7 +138,4 @@ fn main() {
             println!("  Actual:   {:?}", actual_trimmed);
         }
     }
-    
-    // Cleanup (Optional)
-    // fs::remove_file(exec_path).ok();
 }
