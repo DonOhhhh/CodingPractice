@@ -17,3 +17,6 @@ target/
 
 # Ignore all playground files
 /playground/
+
+# But keep run.sh
+!/playground/run.sh
