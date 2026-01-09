@@ -16,4 +16,4 @@ target/
 !**/data/*.out
 
 # Ignore all playground files
-/playground/*
+/playground/
