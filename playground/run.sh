@@ -32,7 +32,7 @@ case "$EXTENSION" in
         ;;
     cpp)
         echo "[*] Compiling C++ file: $FILENAME"
-        clang++-19 -std=c++23 --gcc-toolchain=/usr "$SOURCE_FILE" -o "$EXEC_TARGET"
+        g++ -std=c++23 -O2 -Wall "$SOURCE_FILE" -o "$EXEC_TARGET"
         COMPILE_STATUS=$?
         ;;
     *)
