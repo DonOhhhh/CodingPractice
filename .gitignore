@@ -16,7 +16,7 @@ target/
 !**/data/*.out
 
 # Ignore all playground files
-/playground/
+/playground/*
 
 # But keep run.sh
 !/playground/run.sh
