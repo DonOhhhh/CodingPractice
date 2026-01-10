@@ -1,4 +1,4 @@
-# 알파벳 개수
+# [BOJ 1152 : 단어의 개수](https://www.acmicpc.net/problem/1152)
 
 ## 문제 설명
 
@@ -34,7 +34,3 @@
 
 - 구현
 - 문자열
-
-## 링크
-
-[BOJ 1152 : 단어의 개수](https://www.acmicpc.net/problem/1152)

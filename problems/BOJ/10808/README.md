@@ -1,4 +1,4 @@
-# 알파벳 개수
+# [BOJ 10808 : 알파벳 개수](https://www.acmicpc.net/problem/10808)
 
 ## 문제 설명
 
@@ -41,7 +41,3 @@ baekjoon
 - 구현
 - 문자열
 - 배열
-
-## 링크
-
-[BOJ10808](https://www.acmicpc.net/problem/10808)
