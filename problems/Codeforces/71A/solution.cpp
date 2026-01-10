@@ -1,6 +1,39 @@
 #include <iostream>
+#include <iterator>
+#include <ranges>
+#include <vector>
+#include <cstring>
+
+constexpr int BUFSIZE = 20000;
 
 int main() {
-    std::cout << "Hello, world!" << std::endl;
+    using namespace std;
+
+    string input{istreambuf_iterator<char>{cin}, {}};
+    vector<char> output_buf;
+    output_buf.reserve(BUFSIZE);
+    char* out_ptr = output_buf.data();
+
+    for (auto const word : input
+                        | views::split('\n')
+                        | views::drop(1)
+    ) {
+        string_view sv{word.begin(), word.end()};
+        size_t len = sv.size();
+        
+        if(len > 10) {
+            *out_ptr++ = sv.front();
+
+            auto [next_ptr, ec] = to_chars(out_ptr, out_ptr + 10, len - 2);
+            out_ptr = next_ptr;
+            
+            *out_ptr++ = sv.back();
+        } else {
+            memcpy(out_ptr, sv.data(), len);
+            out_ptr += len;
+        }
+        *out_ptr++ = '\n';
+    }
+    cout.write(output_buf.data(), out_ptr - output_buf.data());
     return 0;
 }
