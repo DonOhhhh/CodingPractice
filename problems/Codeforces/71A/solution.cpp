@@ -10,11 +10,11 @@ int main() {
     output_buf.reserve(BUFSIZE);
     char* out_ptr = output_buf.data();
 
-    for (auto const word : input
+    for (auto const sv : input
                         | views::split('\n')
                         | views::drop(1)
+                        | views::transform([](auto r) { return string_view(r); })
     ) {
-        string_view sv{word.begin(), word.end()};
         size_t len = sv.size();
         out_ptr = len > 10 
                 ? format_to(out_ptr, "{}{}{}", sv.front(), len - 2, sv.back()) 
