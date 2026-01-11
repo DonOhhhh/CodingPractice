@@ -2,7 +2,8 @@
 #include <iterator>
 #include <ranges>
 #include <vector>
-#include <cstring>
+#include <charconv>
+#include <algorithm>
 
 constexpr int BUFSIZE = 20000;
 
@@ -29,8 +30,7 @@ int main() {
             
             *out_ptr++ = sv.back();
         } else {
-            memcpy(out_ptr, sv.data(), len);
-            out_ptr += len;
+            out_ptr = ranges::copy(sv, out_ptr).out;
         }
         *out_ptr++ = '\n';
     }
