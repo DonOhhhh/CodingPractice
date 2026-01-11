@@ -2,7 +2,7 @@
 #include <iterator>
 #include <ranges>
 #include <vector>
-#include <charconv>
+#include <format>
 #include <algorithm>
 
 constexpr int BUFSIZE = 20000;
@@ -21,17 +21,9 @@ int main() {
     ) {
         string_view sv{word.begin(), word.end()};
         size_t len = sv.size();
-        
-        if(len > 10) {
-            *out_ptr++ = sv.front();
-
-            auto [next_ptr, ec] = to_chars(out_ptr, out_ptr + 10, len - 2);
-            out_ptr = next_ptr;
-            
-            *out_ptr++ = sv.back();
-        } else {
-            out_ptr = ranges::copy(sv, out_ptr).out;
-        }
+        out_ptr = len > 10 
+                ? format_to(out_ptr, "{}{}{}", sv.front(), len - 2, sv.back()) 
+                : ranges::copy(sv, out_ptr).out;
         *out_ptr++ = '\n';
     }
     cout.write(output_buf.data(), out_ptr - output_buf.data());
