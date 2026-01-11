@@ -1,9 +1,4 @@
-#include <iostream>
-#include <iterator>
-#include <ranges>
-#include <vector>
-#include <format>
-#include <algorithm>
+#include <bits/stdc++.h>
 
 constexpr int BUFSIZE = 20000;
 
