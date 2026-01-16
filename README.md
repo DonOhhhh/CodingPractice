@@ -51,7 +51,7 @@ CodingPractice/
 - **Automated Testing**: Automatically compiles your C++ (`.cpp`) or Rust (`.rs`) code and runs it against all test cases in the `data/` folder.
 - **Smart Path Detection**: Run the `runner` command from any subdirectory; it automatically finds the project root.
 
-## Setup & Usage
+## Get Started
 
 ### 1. Prerequisite
 

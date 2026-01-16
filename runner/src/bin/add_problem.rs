@@ -60,7 +60,20 @@ fn main() -> Result<()> {
         .interact_text()
         .context("Failed to read problem number")?;
 
-    // 4. Create Directory Structure
+    // 4. Select Test Case Count
+    let test_case_count: usize = Input::with_theme(&ColorfulTheme::default())
+        .with_prompt("Enter number of test cases (1-100)")
+        .default(2)
+        .validate_with(|input: &usize| -> Result<(), &str> {
+            if *input < 1 || *input > 100 {
+                return Err("Number of test cases must be between 1 and 100");
+            }
+            Ok(())
+        })
+        .interact_text()
+        .context("Failed to read test case count")?;
+
+    // 5. Create Directory Structure
     let problem_dir = root_path.join(selected_category).join(&problem_number);
     if problem_dir.exists() {
         println!("Problem directory already exists: {:?}", problem_dir);
@@ -78,10 +91,20 @@ fn main() -> Result<()> {
     let content_readme = fs::read_to_string(templates_dir.join("README.md"))
         .unwrap_or_else(|_| format!("# [{} {} : ]()\n\n## 문제 설명\n\n\n\n## 입력\n\n\n\n## 출력\n\n|\n\n## 예제\n\n| 입력 | 출력 |\n| :-| :- |\n| | |\n| | |\n\n## 티어\n\n\n\n## 제한\n\n|시간|메모리|\n|---|---|\n|1초|256MB|\n\n## 알고리즘 분류\n\n\n", selected_category, problem_number));
 
+    // Generate examples section
+    let mut examples_section = String::new();
+    for i in 1..=test_case_count {
+        examples_section.push_str(&format!(
+            "### {}\n\n#### 입력\n\n```bash\n\n```\n\n#### 출력\n\n```bash\n\n```\n\n",
+            i
+        ));
+    }
+
     // Replace placeholders in README
     let content_readme = content_readme
         .replace("{category}", selected_category)
-        .replace("{problem_number}", &problem_number);
+        .replace("{problem_number}", &problem_number)
+        .replace("{examples}", &examples_section);
 
     let content_rs = fs::read_to_string(templates_dir.join("solution.rs"))
         .unwrap_or_else(|_| "fn main() {\n    println!(\"Hello, world!\");\n}\n".to_string());
@@ -98,10 +121,10 @@ fn main() -> Result<()> {
     let data_dir = problem_dir.join("data");
     fs::create_dir_all(&data_dir)?;
 
-    create_file(&data_dir.join("1.in"), "")?;
-    create_file(&data_dir.join("1.out"), "")?;
-    create_file(&data_dir.join("2.in"), "")?;
-    create_file(&data_dir.join("2.out"), "")?;
+    for i in 1..=test_case_count {
+        create_file(&data_dir.join(format!("{}.in", i)), "")?;
+        create_file(&data_dir.join(format!("{}.out", i)), "")?;
+    }
 
     println!(
         "Successfully created problem {} in {:?}",

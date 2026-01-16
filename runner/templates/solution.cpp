@@ -1,6 +1,13 @@
 #include <iostream>
+#include <iterator>
+
+using namespace std;
 
 int main() {
-    std::cout << "Hello, world!" << std::endl;
+    string s{istreambuf_iterator<char>{cin}, {}};
+
+    
+
+    cout.write(s.data(), s.size());
     return 0;
 }
