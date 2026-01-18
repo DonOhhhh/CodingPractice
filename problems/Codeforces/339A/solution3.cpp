@@ -18,7 +18,7 @@ int main() {
     ranges::stable_sort(nums);
     
     string result = ranges::fold_left(
-        nums, "", [](auto acc, auto elem) {
+        nums, "", [](string acc, char elem) {
             return format("{}{}+", acc, elem);
         });
     cout.write(result.data(), result.size() - 1);
