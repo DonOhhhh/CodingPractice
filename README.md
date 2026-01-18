@@ -102,7 +102,9 @@ add_problem
 
 1. Select a category (e.g., BOJ).
 2. Enter the problem number.
-3. Start coding in `problems/BOJ/<number>/solution.cpp` (or `.rs`).
+3. Enter the number of test cases.
+4. Input the test case inputs and outputs directly in the terminal (end with an empty line).
+5. Start coding in `problems/BOJ/<number>/solution.cpp` (or `.rs`).
 
 ## Running Tests
 

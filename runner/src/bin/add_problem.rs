@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use dialoguer::{Input, Select, theme::ColorfulTheme};
 use std::fs;
+use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 
 fn main() -> Result<()> {
@@ -73,7 +74,21 @@ fn main() -> Result<()> {
         .interact_text()
         .context("Failed to read test case count")?;
 
-    // 5. Create Directory Structure
+    // 5. Collect Input/Output for each test case
+    let mut examples = Vec::new();
+    for i in 1..=test_case_count {
+        println!("\nCollecting data for Example #{}", i);
+        
+        println!("Enter Input (press Enter twice to finish):");
+        let input_data = read_multiline()?;
+
+        println!("Enter Output (press Enter twice to finish):");
+        let output_data = read_multiline()?;
+
+        examples.push((input_data, output_data));
+    }
+
+    // 6. Create Directory Structure
     let problem_dir = root_path.join(selected_category).join(&problem_number);
     if problem_dir.exists() {
         println!("Problem directory already exists: {:?}", problem_dir);
@@ -93,10 +108,11 @@ fn main() -> Result<()> {
 
     // Generate examples section
     let mut examples_section = String::new();
-    for i in 1..=test_case_count {
+    for (i, (input_data, output_data)) in examples.iter().enumerate() {
+        let example_num = i + 1;
         examples_section.push_str(&format!(
-            "### {}\n\n#### 입력\n\n```bash\n\n```\n\n#### 출력\n\n```bash\n\n```\n\n",
-            i
+            "### {}\n\n#### 입력\n\n```\n{}\n```\n\n#### 출력\n\n```\n{}\n```\n\n",
+            example_num, input_data, output_data
         ));
     }
 
@@ -121,9 +137,10 @@ fn main() -> Result<()> {
     let data_dir = problem_dir.join("data");
     fs::create_dir_all(&data_dir)?;
 
-    for i in 1..=test_case_count {
-        create_file(&data_dir.join(format!("{}.in", i)), "")?;
-        create_file(&data_dir.join(format!("{}.out", i)), "")?;
+    for (i, (input_data, output_data)) in examples.iter().enumerate() {
+        let example_num = i + 1;
+        create_file(&data_dir.join(format!("{}.in", example_num)), input_data)?;
+        create_file(&data_dir.join(format!("{}.out", example_num)), output_data)?;
     }
 
     println!(
@@ -136,4 +153,25 @@ fn main() -> Result<()> {
 
 fn create_file(path: &Path, content: &str) -> Result<()> {
     fs::write(path, content).with_context(|| format!("Failed to create file {:?}", path))
+}
+
+fn read_multiline() -> Result<String> {
+    let mut lines = Vec::new();
+    let stdin = io::stdin();
+    let mut handle = stdin.lock();
+
+    loop {
+        let mut line = String::new();
+        let bytes_read = handle.read_line(&mut line)?;
+        
+        // EOF or empty line (just newline) signals end
+        if bytes_read == 0 || line.trim().is_empty() {
+            break;
+        }
+        
+        // Remove the newline character for storage
+        lines.push(line.trim_end().to_string());
+    }
+    
+    Ok(lines.join("\n"))
 }
