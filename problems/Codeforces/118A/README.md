@@ -1,4 +1,4 @@
-# [Codeforces 118A : ]()
+# [Codeforces 118A : String Task](https://codeforces.com/problemset/problem/118/A)
 
 ## 문제 설명
 
