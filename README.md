@@ -87,7 +87,7 @@ cp runner/target/release/add_problem bin/
 Add the project's `bin` directory to your `PATH` in your shell configuration (e.g., `~/.bashrc`):
 
 ```bash
-export PATH="$PATH:/path/to/CodingPractice/bin"
+export PATH="$PATH:$HOME/CodingPractice/bin"
 ```
 
 _Reload your shell or run `source ~/.bashrc`._
