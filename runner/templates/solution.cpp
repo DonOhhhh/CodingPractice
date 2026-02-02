@@ -1,11 +1,11 @@
 #include <iostream>
-#include <iterator>
 #include <string>
+#include <vector>
 
 int main() {
     using namespace std;
-    string s{istreambuf_iterator<char>{cin}, {}};
-
-    cout.write(s.data(), s.size());
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    
     return 0;
 }
