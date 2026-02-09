@@ -14,9 +14,6 @@ CodingPractice/
 │   │       └── ...
 │   ├── LeetCode/
 │   └── ...
-├── playground/                # Free coding area (auto-cleanup)
-│   ├── run.sh                 # Playground runner script
-│   └── ...
 ├── runner/
 │   ├── Cargo.toml
 │   └── src/
@@ -47,9 +44,10 @@ CodingPractice/
 
 ## Features
 
-- **Problem Generator**: Interactive tool (`add_problem`) to create new problem folders, templates, a basic test cases.
-- **Automated Testing**: Automatically compiles your C++ (`.cpp`) or Rust (`.rs`) code and runs it against all test cases in the `data/` folder.
-- **Smart Path Detection**: Run the `runner` command from any subdirectory; it automatically finds the project root.
+- **Problem Generator**: Interactive tool (`add_problem`) to create new problem folders and templates.
+- **Automated Suite Testing**: The `runner` tool automatically compiles a solution and runs it against all associated test cases.
+- **Single Case Debugging**: The `cptest` tool compiles and runs a solution against a single, specific test case for easy debugging.
+- **Smart Path Detection**: Run tools from any subdirectory; they automatically find the project root.
 
 ## Get Started
 
@@ -61,28 +59,32 @@ Ensure you have Rust installed to build the tools.
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-### 2. Build Tools
+### 2. Build and Install Tools
 
-Go to the `runner` directory and build the binaries:
+Go to the `runner` directory, compile the tools, and copy them to the local `bin` directory.
+
+**1. Install Rust Binaries**
+
+The `cargo install` command will compile the tools and install them to your central cargo directory (`~/.cargo/bin`).
 
 ```bash
 cd runner
-cargo build --release
+cargo install --path .
+cd ..
 ```
 
-This will compile `runner` and `add_problem` into `target/release/`.
+**2. Copy to Local Bin**
 
-### 3. Install Binaries
-
-Copy the binaries to the `bin` directory (or ensure your build script does so):
+For this project's setup, copy the installed binaries into the project's local `bin` folder.
 
 ```bash
 # Assuming you are in the project root
-cp runner/target/release/runner bin/
-cp runner/target/release/add_problem bin/
+cp ~/.cargo/bin/add_problem bin/
+cp ~/.cargo/bin/runner bin/
+cp ~/.cargo/bin/cptest bin/
 ```
 
-### 4. Configure PATH
+### 3. Configure PATH
 
 Add the project's `bin` directory to your `PATH` in your shell configuration (e.g., `~/.bashrc`):
 
@@ -119,21 +121,22 @@ cd problems/BOJ/1000
 runner solution.cpp
 ```
 
-## Playground (Free Coding)
+## Testing a Single Case
 
-A dedicated space for testing code snippets without the structure of a problem.
+For quickly compiling and checking a single test case without running the entire suite, use the `cptest` command.
 
-- **Directory**: `playground/`
-- **Runner**: `./run.sh <file>`
-- **Features**:
-  - Compiles to `../bin/temp_exec` to keep the playground clean.
-  - Runs the executable immediately.
-  - Supports C++, Rust, C, and Python.
-  - **C++ Compiler**: Uses `clang++-19` with C++23 support (`-std=c++23`).
-
-### Usage
+This is useful for debugging a specific scenario.
 
 ```bash
-cd playground
-./run.sh hello.cpp
+# Usage: cptest <testcase_id> <path_to_solution_file>
+cptest 1 problems/BOJ/1000/solution.cpp
 ```
+
+This command will:
+1. Compile `solution.cpp` with the project's standard settings.
+2. Run the compiled binary with `problems/BOJ/1000/data/1.in` as input.
+3. Compare the result against `problems/BOJ/1000/data/1.out`.
+4. Report whether the test passed or failed.
+
+For more details, run `cptest --help`.
+
