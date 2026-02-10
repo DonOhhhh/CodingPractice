@@ -1,5 +1,4 @@
 use clap::Parser;
-use std::env;
 use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -25,7 +24,7 @@ fn find_project_root(start_path: &Path) -> io::Result<PathBuf> {
         }
         current = match current.parent() {
             Some(p) => p,
-            None => return Err(io::Error::new(io::ErrorKind::NotFound, "Could not find project root.")),
+            _ => return Err(io::Error::new(io::ErrorKind::NotFound, "Could not find project root.")),
         };
     }
 }
