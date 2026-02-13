@@ -108,18 +108,47 @@ add_problem
 4. Input the test case inputs and outputs directly in the terminal (end with an empty line).
 5. Start coding in `problems/BOJ/<number>/solution.cpp` (or `.rs`).
 
-## Running Tests
+## Running Tests with `runner`
 
-To run a solution against its test cases:
+The `runner` tool is a comprehensive test runner that automates compiling and testing your solutions against a full suite of test cases.
+
+### Usage
+
+To run a solution, execute the following command. The tool can be run from anywhere in the project directory.
 
 ```bash
 # From anywhere in the project
-runner problems/BOJ/1000/solution.cpp
+runner <path_to_source_file>
 
-# Or if you are inside the problem folder
-cd problems/BOJ/1000
-runner solution.cpp
+# Example
+runner problems/BOJ/1000/solution.cpp
 ```
+
+### Features
+
+-   **Automatic Compilation**: Compiles C++ (`.cpp`) and Rust (`.rs`) files before running.
+    -   **C++**: `g++ -std=c++23 -O2 -Wall <source> -o <executable>`
+    -   **Rust**: `rustc <source> -o <executable>`
+-   **Test Case Execution**: The runner looks for a `data` directory inside the problem's folder. It runs the compiled solution against every `.in` file.
+-   **Output Verification**: The output of the solution is compared against the content of the corresponding `.out` file.
+-   **Resource Limiting**: The runner enforces time and memory limits for each test run.
+-   **Detailed Results**: It reports `PASS` or `FAIL` for each test case, along with execution time and peak memory usage.
+
+### Resource Limit Configuration
+
+The `runner` can parse time and memory limits directly from a problem's `README.md` file.
+
+To configure this, add a `## 제한` section to your problem's `README.md` with a table like this:
+
+```markdown
+## 제한
+
+| 시간 | 메모리 |
+|:----:|:------:|
+| 2초  | 512MB  |
+```
+
+If this table is not found, the runner will use default limits: **1 second** and **256 MB**.
 
 ## Testing a Single Case
 
