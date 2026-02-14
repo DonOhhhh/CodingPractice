@@ -52,7 +52,7 @@ fn main() -> io::Result<()> {
     let compile_output = if extension == "rs" {
         Command::new("rustc").current_dir(parent_dir).arg("-O").arg(file_name).arg("-o").arg(&output_path).output()
     } else if extension == "cpp" {
-        Command::new("g++").current_dir(parent_dir).args(["-std=c++23", "-O2", "-Wall"]).arg(file_name).arg("-o").arg(&output_path).output()
+        Command::new("g++").current_dir(parent_dir).args(["-std=c++23", "-O2", "-Wall", "-g", "-fsanitize=address"]).arg(file_name).arg("-o").arg(&output_path).output()
     } else {
         eprintln!("Error: Unsupported file extension: {:?}", extension.to_string_lossy());
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "Unsupported file type"));
@@ -101,6 +101,13 @@ fn main() -> io::Result<()> {
     drop(stdin);
 
     let result = child.wait_with_output()?;
+
+    if !result.status.success() {
+        eprintln!("\n!!!!!!!!!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!!!!!");
+        io::stderr().write_all(&result.stderr)?;
+        eprintln!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    }
+
     let actual_output_raw = result.stdout;
     let actual_output = String::from_utf8_lossy(&actual_output_raw);
     
