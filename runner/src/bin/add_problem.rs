@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use dialoguer::{Input, Select, theme::ColorfulTheme};
+use dialoguer::{Input, theme::ColorfulTheme};
 use std::fs;
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
@@ -35,14 +35,23 @@ fn main() -> Result<()> {
     }
 
     // 2. Select Category
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Select a problem category")
-        .default(0)
-        .items(&categories)
-        .interact()
-        .context("Failed to select category")?;
+    println!("Select a problem category:");
+    for (i, category) in categories.iter().enumerate() {
+        println!("{}: {}", i + 1, category);
+    }
 
-    let selected_category = &categories[selection];
+    let selection: usize = Input::with_theme(&ColorfulTheme::default())
+        .with_prompt("Enter the number for the category")
+        .validate_with(|input: &usize| -> Result<(), &str> {
+            if *input > 0 && *input <= categories.len() {
+                Ok(())
+            } else {
+                Err("Invalid number")
+            }
+        })
+        .interact_text()?;
+
+    let selected_category = &categories[selection - 1]; // Adjust for 0-based index
 
     // 3. Input Problem Number
     let problem_number: String = Input::with_theme(&ColorfulTheme::default())
@@ -64,7 +73,7 @@ fn main() -> Result<()> {
     // 4. Select Test Case Count
     let test_case_count: usize = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Enter number of test cases (1-100)")
-        .default(2)
+        .default(1)
         .validate_with(|input: &usize| -> Result<(), &str> {
             if *input < 1 || *input > 100 {
                 return Err("Number of test cases must be between 1 and 100");

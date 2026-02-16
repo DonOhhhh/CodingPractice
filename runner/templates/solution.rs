@@ -1,4 +1,4 @@
-use std::io::{self, Read, Write, BufWriter};
+use std::io::{self, BufWriter, Read, Write};
 
 macro_rules! scan {
     ($it: expr, $t: ty) => {
@@ -11,6 +11,8 @@ fn main() -> io::Result<()> {
     io::stdin().lock().read_to_string(&mut input)?;
     let mut iter = input.split_ascii_whitespace();
     let mut writer = BufWriter::new(io::stdout().lock());
-
+    for _ in 0..scan!(iter, usize) {
+        
+    }
     Ok(())
 }
