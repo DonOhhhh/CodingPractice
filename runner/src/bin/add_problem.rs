@@ -1,12 +1,11 @@
 use anyhow::{Context, Result};
-use dialoguer::{Input, theme::ColorfulTheme};
+use dialoguer::{Input, Select, theme::ColorfulTheme};
 use std::fs;
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 
 fn main() -> Result<()> {
     // Define the root path for problems
-    // We use absolute path to ensure it works regardless of where the command is run
     let root_path = PathBuf::from("/home/codefreak/CodingPractice/problems");
 
     if !root_path.exists() {
@@ -34,24 +33,15 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    // 2. Select Category
-    println!("Select a problem category:");
-    for (i, category) in categories.iter().enumerate() {
-        println!("{}: {}", i + 1, category);
-    }
+    // 2. Select Category (Using dialoguer's arrow-key selection)
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Select a problem category")
+        .default(0)
+        .items(&categories)
+        .interact()
+        .context("Failed to select category")?;
 
-    let selection: usize = Input::with_theme(&ColorfulTheme::default())
-        .with_prompt("Enter the number for the category")
-        .validate_with(|input: &usize| -> Result<(), &str> {
-            if *input > 0 && *input <= categories.len() {
-                Ok(())
-            } else {
-                Err("Invalid number")
-            }
-        })
-        .interact_text()?;
-
-    let selected_category = &categories[selection - 1]; // Adjust for 0-based index
+    let selected_category = &categories[selection];
 
     // 3. Input Problem Number
     let problem_number: String = Input::with_theme(&ColorfulTheme::default())
@@ -61,16 +51,14 @@ fn main() -> Result<()> {
                 return Err("Problem number must be 10 characters or less");
             }
             if !input.chars().all(char::is_alphanumeric) {
-                return Err(
-                    "Problem number must be alphanumeric (no special characters or spaces)",
-                );
+                return Err("Problem number must be alphanumeric (no special characters or spaces)");
             }
             Ok(())
         })
         .interact_text()
         .context("Failed to read problem number")?;
 
-    // 4. Select Test Case Count
+    // 4. Select Test Case Count (Default is 1 as requested)
     let test_case_count: usize = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Enter number of test cases (1-100)")
         .default(1)
@@ -115,22 +103,6 @@ fn main() -> Result<()> {
     let content_readme = fs::read_to_string(templates_dir.join("README.md"))
         .unwrap_or_else(|_| format!("# [{} {} : ]()\n\n## 문제 설명\n\n\n\n## 입력\n\n\n\n## 출력\n\n|\n\n## 예제\n\n| 입력 | 출력 |\n| :-| :- |\n| | |\n| | |\n\n## 티어\n\n\n\n## 제한\n\n|시간|메모리|\n|---|---|\n|1초|256MB|\n\n## 알고리즘 분류\n\n\n", selected_category, problem_number));
 
-    // Generate examples section
-    let mut examples_section = String::new();
-    for (i, (input_data, output_data)) in examples.iter().enumerate() {
-        let example_num = i + 1;
-        examples_section.push_str(&format!(
-            "### {}\n\n#### 입력\n\n```\n{}\n```\n\n#### 출력\n\n```\n{}\n```\n\n",
-            example_num, input_data, output_data
-        ));
-    }
-
-    // Replace placeholders in README
-    let content_readme = content_readme
-        .replace("{category}", selected_category)
-        .replace("{problem_number}", &problem_number)
-        .replace("{examples}", &examples_section);
-
     let content_rs = fs::read_to_string(templates_dir.join("solution.rs"))
         .unwrap_or_else(|_| "fn main() {\n    println!(\"Hello, world!\");\n}\n".to_string());
 
@@ -152,10 +124,7 @@ fn main() -> Result<()> {
         create_file(&data_dir.join(format!("{}.out", example_num)), output_data)?;
     }
 
-    println!(
-        "Successfully created problem {} in {:?}",
-        problem_number, problem_dir
-    );
+    println!("\nSuccessfully created problem {} in {:?}", problem_number, problem_dir);
 
     Ok(())
 }
@@ -173,12 +142,10 @@ fn read_multiline() -> Result<String> {
         let mut line = String::new();
         let bytes_read = handle.read_line(&mut line)?;
         
-        // EOF or empty line (just newline) signals end
         if bytes_read == 0 || line.trim().is_empty() {
             break;
         }
         
-        // Remove the newline character for storage
         lines.push(line.trim_end().to_string());
     }
     
