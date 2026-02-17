@@ -103,6 +103,22 @@ fn main() -> Result<()> {
     let content_readme = fs::read_to_string(templates_dir.join("README.md"))
         .unwrap_or_else(|_| format!("# [{} {} : ]()\n\n## 문제 설명\n\n\n\n## 입력\n\n\n\n## 출력\n\n|\n\n## 예제\n\n| 입력 | 출력 |\n| :-| :- |\n| | |\n| | |\n\n## 티어\n\n\n\n## 제한\n\n|시간|메모리|\n|---|---|\n|1초|256MB|\n\n## 알고리즘 분류\n\n\n", selected_category, problem_number));
 
+    // Generate examples section
+    let mut examples_section = String::new();
+    for (i, (input_data, output_data)) in examples.iter().enumerate() {
+        let example_num = i + 1;
+        examples_section.push_str(&format!(
+            "### {}\n\n#### 입력\n\n```\n{}\n```\n\n#### 출력\n\n```\n{}\n```\n\n",
+            example_num, input_data, output_data
+        ));
+    }
+
+    // Replace placeholders in README
+    let content_readme = content_readme
+        .replace("{category}", selected_category)
+        .replace("{problem_number}", &problem_number)
+        .replace("{examples}", &examples_section);
+
     let content_rs = fs::read_to_string(templates_dir.join("solution.rs"))
         .unwrap_or_else(|_| "fn main() {\n    println!(\"Hello, world!\");\n}\n".to_string());
 
