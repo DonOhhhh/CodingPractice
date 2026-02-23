@@ -4,8 +4,9 @@
 
 Lura was bored and decided to make a simple language using the five letters $\texttt{a}, \texttt{b}, \texttt{c}, \texttt{d}, \texttt{e}$. There are two types of letters:
 
-vowels — the letters $\texttt{a}$ and $\texttt{e}$. They are represented by $\textsf{V}$.
-consonants — the letters $\texttt{b}$, $\texttt{c}$, and $\texttt{d}$. They are represented by $\textsf{C}$.
+- vowels — the letters $\texttt{a}$ and $\texttt{e}$. They are represented by $\textsf{V}$.
+- consonants — the letters $\texttt{b}$, $\texttt{c}$, and $\texttt{d}$. They are represented by $\textsf{C}$.
+
 There are two types of syllables in the language: $\textsf{CV}$ (consonant followed by vowel) or $\textsf{CVC}$ (vowel with consonant before and after). For example, $\texttt{ba}$, $\texttt{ced}$, $\texttt{bab}$ are syllables, but $\texttt{aa}$, $\texttt{eda}$, $\texttt{baba}$ are not.
 A word in the language is a sequence of syllables. Lura has written a word in the language, but she doesn't know how to split it into syllables. Help her break the word into syllables.
 

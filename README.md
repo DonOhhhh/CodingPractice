@@ -1,28 +1,46 @@
 # Coding Practice Environment
 
-A structured environment for practicing algorithm problems (BOJ, LeetCode, etc.) with a custom automated test runner.
+A structured environment for practicing algorithm problems (BOJ, Codeforces, LeetCode, etc.) with a custom automated test runner and problem parser.
 
 ## Directory Structure
 
 ```text
 CodingPractice/
 ├── problems/
-│   ├── BOJ/
+│   ├── acmicpc/       # Previously BOJ
 │   │   └── 1000/
 │   │       ├── data/          # Test cases (in/out)
 │   │       ├── solution.cpp   # Your solution
-│   │       └── ...
-│   ├── LeetCode/
-│   └── ...
+│   │       └── README.md      # Problem description & limits
+│   ├── codeforces/
+│   └── leetcode/      # (Optional)
 ├── runner/
-│   ├── Cargo.toml
-│   └── src/
-│       └── bin/
-│           ├── runner.rs      # Main test runner source
-│           └── add_problem.rs # Problem creation tool source
-├── bin/                       # Compiled binaries (auto-generated)
+│   ├── resources/
+│   │   ├── cookies/   # Site-specific session cookies (.json)
+│   │   └── ...
+│   ├── src/
+│   │   └── bin/
+│   │       ├── runner.rs      # Test suite runner
+│   │       ├── add_problem.rs # Problem creation tool
+│   │       ├── cptest.rs      # Single case debugger
+│   │       └── parse/         # Parsing logic (main.rs, crawl.rs, etc.)
+│   ├── templates/     # Code & README templates
+│   └── Cargo.toml
+├── bin/               # Compiled binaries
+│   ├── runner
+│   ├── add_problem
+│   └── cptest
 └── README.md
 ```
+
+## Features
+
+- **Integrated Problem Generator**: 
+  - **Manual Input**: Create templates and input test cases manually.
+  - **URL Parsing**: Automatically fetch problem titles, descriptions, constraints, and test cases from supported sites (currently **Codeforces**).
+- **Automated Suite Testing**: The `runner` tool automatically compiles a solution and runs it against all associated test cases.
+- **Bypass Cloudflare**: Supports both Cookie-based and CDP-based (Chromium DevTools Protocol) fetching to handle protected sites.
+- **Smart Path Detection**: Run tools from any subdirectory; they automatically find the project root.
 
 ## Environment & Requirements
 
@@ -31,29 +49,13 @@ CodingPractice/
 1.  **Multiple Solution Support**: Support various language solutions (C++, Rust) for a single problem side-by-side.
 2.  **Test Case Separation**: Keep test data (`.in`/`.out`) separate from source code in a `data/` subdirectory.
 3.  **Automated Runner**: One-command automation to compile and test solutions.
-4.  **Clean Builds**: Manage build artifacts in a centralized `bin/` directory to keep source folders clean.
-5.  **Structured Hierarchy**: `problems/{Site}/{ProblemID}` structure for organized practice.
-
-### Environment Details
-
-- **OS**: Linux
-- **Languages Supported**:
-  - **C++**: Compiled with `g++ -std=c++23 -O2 -Wall`
-  - **Rust**: Compiled with `rustc`
-- **Shell**: Bash (tested with aliases)
-
-## Features
-
-- **Problem Generator**: Interactive tool (`add_problem`) to create new problem folders and templates.
-- **Automated Suite Testing**: The `runner` tool automatically compiles a solution and runs it against all associated test cases.
-- **Single Case Debugging**: The `cptest` tool compiles and runs a solution against a single, specific test case for easy debugging.
-- **Smart Path Detection**: Run tools from any subdirectory; they automatically find the project root.
+4.  **Structured Hierarchy**: `problems/{site}/{problem_id}` structure (all lowercase) for organized practice.
 
 ## Get Started
 
 ### 1. Prerequisite
 
-Ensure you have Rust installed to build the tools.
+Ensure you have Rust and Chromium (for CDP fetching) installed.
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -61,111 +63,54 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### 2. Build and Install Tools
 
-Go to the `runner` directory, compile the tools, and copy them to the local `bin` directory.
-
-**1. Install Rust Binaries**
-
-The `cargo install` command will compile the tools and install them to your central cargo directory (`~/.cargo/bin`).
-
 ```bash
 cd runner
-cargo install --path .
+cargo build
+cp target/debug/add_problem ../bin/
+cp target/debug/runner ../bin/
+cp target/debug/cptest ../bin/
 cd ..
 ```
 
-**2. Copy to Local Bin**
+### 3. Configure Session Cookies (Optional)
 
-For this project's setup, copy the installed binaries into the project's local `bin` folder.
-
-```bash
-# Assuming you are in the project root
-cp ~/.cargo/bin/add_problem bin/
-cp ~/.cargo/bin/runner bin/
-cp ~/.cargo/bin/cptest bin/
-```
-
-### 3. Configure PATH
-
-Add the project's `bin` directory to your `PATH` in your shell configuration (e.g., `~/.bashrc`):
-
-```bash
-export PATH="$PATH:$HOME/CodingPractice/bin"
-```
-
-_Reload your shell or run `source ~/.bashrc`._
+To parse problems from sites requiring login (or to bypass certain checks), place exported cookies in `runner/resources/cookies/{site}.json`.
+- Supported site names: `codeforces`, `acmicpc`, `leetcode`.
 
 ## Adding a New Problem
 
-Use the interactive `add_problem` tool:
+Use the integrated `add_problem` tool:
 
 ```bash
 add_problem
 ```
 
-1. Select a category (e.g., BOJ).
-2. Enter the problem number.
-3. Enter the number of test cases.
-4. Input the test case inputs and outputs directly in the terminal (end with an empty line).
-5. Start coding in `problems/BOJ/<number>/solution.cpp` (or `.rs`).
+1. **Select Input Method**: 
+   - `Manual Input`: Traditional manual setup.
+   - `Parse from URL`: Provide a URL (e.g., Codeforces) to automate everything.
+2. **Automatic Setup**: If using URL, the tool will:
+   - Create the directory: `problems/{site}/{id}/`
+   - Create `solution.rs` and `solution.cpp` from templates.
+   - Generate `README.md` with the problem statement.
+   - Save sample test cases to the `data/` folder.
 
 ## Running Tests with `runner`
 
-The `runner` tool is a comprehensive test runner that automates compiling and testing your solutions against a full suite of test cases.
-
-### Usage
-
-To run a solution, execute the following command. The tool can be run from anywhere in the project directory.
-
 ```bash
-# From anywhere in the project
-runner <path_to_source_file>
-
-# Example
-runner problems/BOJ/1000/solution.cpp
+runner problems/acmicpc/1000/solution.cpp
 ```
 
 ### Features
 
--   **Automatic Compilation**: Compiles C++ (`.cpp`) and Rust (`.rs`) files before running.
-    -   **C++**: `g++ -std=c++23 -O2 -Wall <source> -o <executable>`
-    -   **Rust**: `rustc <source> -o <executable>`
--   **Test Case Execution**: The runner looks for a `data` directory inside the problem's folder. It runs the compiled solution against every `.in` file.
--   **Output Verification**: The output of the solution is compared against the content of the corresponding `.out` file.
--   **Resource Limiting**: The runner enforces time and memory limits for each test run.
--   **Detailed Results**: It reports `PASS` or `FAIL` for each test case, along with execution time and peak memory usage.
-
-### Resource Limit Configuration
-
-The `runner` can parse time and memory limits directly from a problem's `README.md` file.
-
-To configure this, add a `## 제한` section to your problem's `README.md` with a table like this:
-
-```markdown
-## 제한
-
-| 시간 | 메모리 |
-|:----:|:------:|
-| 2초  | 512MB  |
-```
-
-If this table is not found, the runner will use default limits: **1 second** and **256 MB**.
+-   **Automatic Compilation**: C++ (`-std=c++23`), Rust (`rustc`).
+-   **Output Verification**: Accurate comparison between solution output and `.out` files.
+-   **Resource Limiting**: 
+    - Parsed from `README.md`'s `## 제한` section.
+    - Default: **1 second** / **256 MB**.
 
 ## Testing a Single Case
 
-For quickly compiling and checking a single test case without running the entire suite, use the `cptest` command.
-
-This is useful for debugging a specific scenario.
-
 ```bash
 # Usage: cptest <testcase_id> <path_to_solution_file>
-cptest 1 problems/BOJ/1000/solution.cpp
+cptest 1 problems/acmicpc/1000/solution.rs
 ```
-
-This command will:
-1. Compile `solution.cpp` with the project's standard settings.
-2. Run the compiled binary with `problems/BOJ/1000/data/1.in` as input.
-3. Compare the result against `problems/BOJ/1000/data/1.out`.
-4. Report whether the test passed or failed.
-
-For more details, run `cptest --help`.
-

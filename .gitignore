@@ -23,3 +23,9 @@ target/
 
 # Ignore Cf API Key file
 codeforces api key
+
+# Ignore runner resources
+/runner/resources/*
+
+# 단(!), .gitkeep 파일은 무시하지 않음
+!/runner/resources/.gitkeep
