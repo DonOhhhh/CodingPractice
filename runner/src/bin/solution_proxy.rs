@@ -1,0 +1,1 @@
+include!("/home/codefreak/CodingPractice/problems/codeforces/2094D/solution4.rs");

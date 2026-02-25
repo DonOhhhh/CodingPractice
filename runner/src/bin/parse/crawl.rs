@@ -61,9 +61,18 @@ impl HtmlFetcher for CookieFetcher {
         };
 
         for (name, value) in &web_data.cookies {
+            let value = if name == "lastOnlineTimeUpdaterInvocation" {
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_millis().to_string())
+                    .unwrap_or_else(|_| value.clone())
+            } else {
+                value.clone()
+            };
+
             tab.set_cookies(vec![CookieParam {
                 name: name.clone(),
-                value: value.clone(),
+                value,
                 url: Some(format!("https://{}", domain.trim_start_matches('.'))),
                 domain: Some(domain.to_string()),
                 path: Some("/".to_string()),

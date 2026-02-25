@@ -1,8 +1,8 @@
 use clap::Parser;
 use std::fs;
-use std::io::{self, Write};
-use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::io::{self};
+use std::path::{PathBuf};
+use runner::{find_project_root, compile, run_exec};
 
 /// A Rust-based test runner for competitive programming.
 #[derive(Parser, Debug)]
@@ -16,63 +16,24 @@ struct Cli {
     path: PathBuf,
 }
 
-fn find_project_root(start_path: &Path) -> io::Result<PathBuf> {
-    let mut current = start_path;
-    loop {
-        if current.join(".git").is_dir() && current.join("problems").is_dir() {
-            return Ok(current.to_path_buf());
-        }
-        current = match current.parent() {
-            Some(p) => p,
-            _ => return Err(io::Error::new(io::ErrorKind::NotFound, "Could not find project root.")),
-        };
-    }
-}
-
 fn main() -> io::Result<()> {
     let cli = Cli::parse();
-
     let testcase_id = &cli.testcase_id;
     let file_path = &cli.path;
 
     let absolute_path = file_path.canonicalize()?;
-    if !absolute_path.is_file() {
-        eprintln!("Error: File not found: {}", absolute_path.display());
-        return Err(io::Error::new(io::ErrorKind::NotFound, "File not found"));
-    }
-
-    let project_root = find_project_root(&absolute_path)?;
-    let output_path = project_root.join("bin").join("solution");
+    let project_root = find_project_root();
+    let exec_path = project_root.join("bin/temp_exec");
     let parent_dir = absolute_path.parent().unwrap();
-    let file_name = absolute_path.file_name().unwrap();
-    let extension = absolute_path.extension().unwrap_or_default();
 
-    // 2. Compile the solution
-    println!("INFO: Compiling {}...", file_name.to_string_lossy());
-    let compile_output = if extension == "rs" {
-        Command::new("rustc").current_dir(parent_dir).arg("-O").arg(file_name).arg("-o").arg(&output_path).output()
-    } else if extension == "cpp" {
-        Command::new("g++").current_dir(parent_dir).args(["-std=c++23", "-O2", "-Wall", "-g", "-fsanitize=address"]).arg(file_name).arg("-o").arg(&output_path).output()
-    } else {
-        eprintln!("Error: Unsupported file extension: {:?}", extension.to_string_lossy());
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "Unsupported file type"));
-    };
-    
-    match compile_output {
-        Ok(output) if output.status.success() => println!("INFO: Compilation successful."),
-        Ok(output) => {
-            eprintln!("Error: Compilation failed.");
-            io::stderr().write_all(&output.stdout)?;
-            io::stderr().write_all(&output.stderr)?;
-            return Ok(());
-        }
-        Err(e) => {
-            eprintln!("Error: Failed to execute compiler: {}", e);
-            return Err(e);
-        }
+    // 1. Compile
+    if let Err(err) = compile(&absolute_path, &project_root, &exec_path) {
+        eprintln!("\x1b[31mCompilation Failed:\x1b[0m\n{}", err);
+        std::process::exit(1);
     }
+    println!("INFO: Compilation successful.");
 
-    // 3. Prepare test case paths
+    // 2. Prepare test cases
     let input_file_path = parent_dir.join("data").join(format!("{}.in", testcase_id));
     let output_file_path = parent_dir.join("data").join(format!("{}.out", testcase_id));
 
@@ -85,46 +46,38 @@ fn main() -> io::Result<()> {
         return Ok(());
     }
 
-    let input_data = fs::read(&input_file_path)?;
-
-    // 4. Run the executable with piped I/O
+    // 3. Run
     println!("INFO: Running test case #{}...", testcase_id);
-    let mut child = Command::new(&output_path)
-        .current_dir(parent_dir)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
+    match run_exec(&exec_path, &input_file_path) {
+        Ok(result) => {
+            if !result.success {
+                eprintln!("\n\x1b[31m!!!!!!!!!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!!!!!");
+                eprintln!("Exit code: {}", result.code);
+                if !result.stderr.is_empty() {
+                    eprintln!("Stderr: {}", result.stderr);
+                }
+                eprintln!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\x1b[0m\n");
+            }
 
-    let mut stdin = child.stdin.take().expect("Failed to open stdin");
-    stdin.write_all(&input_data)?;
-    drop(stdin);
+            let actual_output = result.stdout.trim_end();
+            let expected_output = fs::read_to_string(&output_file_path)?;
+            let expected_output = expected_output.trim_end();
 
-    let result = child.wait_with_output()?;
+            println!("--------------------OUTPUT--------------------");
+            println!("{}", actual_output);
+            println!("----------------------------------------------");
 
-    if !result.status.success() {
-        eprintln!("\n!!!!!!!!!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!!!!!");
-        io::stderr().write_all(&result.stderr)?;
-        eprintln!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-    }
-
-    let actual_output_raw = result.stdout;
-    let actual_output = String::from_utf8_lossy(&actual_output_raw);
-    
-    println!("--------------------OUTPUT--------------------");
-    print!("{}", actual_output);
-    println!("----------------------------------------------");
-    
-    // 5. Compare with expected output
-    let expected_output_raw = fs::read(&output_file_path)?;
-    let expected_output = String::from_utf8_lossy(&expected_output_raw);
-
-    if actual_output.trim_end() == expected_output.trim_end() {
-        println!("✅ Test Case Passed!");
-    } else {
-        println!("❌ Test Case Failed!");
-        println!("\n--- Expected Output ---\n{}", expected_output);
-        println!("\n--- Actual Output ---\n{}", actual_output);
+            if actual_output == expected_output {
+                println!("✅ \x1b[32mTest Case Passed!\x1b[0m");
+            } else {
+                println!("❌ \x1b[31mTest Case Failed!\x1b[0m");
+                println!("\n--- Expected Output ---\n{}", expected_output);
+                println!("\n--- Actual Output ---\n{}", actual_output);
+            }
+        }
+        Err(e) => {
+            eprintln!("\x1b[31mExecution Error\x1b[0m: {}", e);
+        }
     }
 
     Ok(())

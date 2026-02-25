@@ -14,7 +14,7 @@ fn main() -> io::Result<()> {
             let p = iter.next().unwrap().as_bytes();
             let s = iter.next().unwrap().as_bytes();
             
-            // 💡 마법의 1줄: chunk_by로 묶고, map으로 (문자, 길이) 튜플로 변환!
+            // 마법의 1줄: chunk_by로 묶고, map으로 (문자, 길이) 튜플로 변환!
             let mut p_blocks = p.chunk_by(|a, b| a == b).map(|chunk| (chunk[0], chunk.len()));
             let mut s_blocks = s.chunk_by(|a, b| a == b).map(|chunk| (chunk[0], chunk.len()));
             

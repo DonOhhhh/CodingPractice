@@ -1,3 +1,4 @@
+// compiler: cargo
 use std::io::{self, BufWriter, Read, Write};
 // itertools 크레이트에서 기능과 열거형을 가져옵니다.
 use itertools::{Itertools, EitherOrBoth::Both};
@@ -16,7 +17,7 @@ fn main() -> io::Result<()> {
             let p = iter.next().unwrap().as_bytes();
             let s = iter.next().unwrap().as_bytes();
             
-            // 💡 여기서부터 진짜 원라이너 시작!
+            // 여기서부터 진짜 원라이너 시작!
             let res = p.chunk_by(|a, b| a == b)
                 .map(|chunk| (chunk[0], chunk.len()))
                 .zip_longest(s.chunk_by(|a, b| a == b).map(|chunk| (chunk[0], chunk.len())))

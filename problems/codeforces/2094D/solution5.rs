@@ -1,3 +1,6 @@
+// toolchain: nightly
+#![feature(iter_order_by)]
+
 use std::io::{self, BufWriter, Read, Write};
 
 fn main() -> io::Result<()> {
@@ -14,7 +17,7 @@ fn main() -> io::Result<()> {
             let p = iter.next().unwrap().as_bytes();
             let s = iter.next().unwrap().as_bytes();
             
-            // 💡 표준 라이브러리만 사용한 궁극의 체이닝!
+            // 표준 라이브러리만 사용한 궁극의 체이닝!
             let res = p.chunk_by(|a, b| a == b)
                 .map(|chunk| (chunk[0], chunk.len()))
                 // eq_by: 길이가 다르면 즉시 false, 같으면 아래의 클로저로 쌍을 비교
