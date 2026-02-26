@@ -134,6 +134,45 @@ fn extract_text_from_pre(element: scraper::element_ref::ElementRef) -> String {
 }
 
 fn node_to_markdown(node: scraper::element_ref::ElementRef) -> String {
+    let result = node_to_markdown_internal(node, false);
+    
+    let res = result.replace("&nbsp;", " ")
+                    .replace("&lt;", "<")
+                    .replace("&gt;", ">")
+                    .replace("&amp;", "&")
+                    .replace("&quot;", "\"");
+    
+    // Collapse multiple spaces into one
+    let re_spaces = Regex::new(r" +").unwrap();
+    let res = re_spaces.replace_all(&res, " ").to_string();
+
+    // Clean up spaces around math delimiters
+    // 1. Remove spaces immediately inside $: "$ x $" -> "$x$"
+    let re_math_start = Regex::new(r"\$\s+").unwrap();
+    let res = re_math_start.replace_all(&res, "$").to_string();
+    let re_math_end = Regex::new(r"\s+\$").unwrap();
+    let res = re_math_end.replace_all(&res, "$").to_string();
+
+    // 2. Remove spaces between parentheses and math: "( $" -> "($", "$ )" -> "$)"
+    let res = res.replace("( $", "($").replace("$ )", "$)");
+    
+    let mut cleaned = String::new();
+    let mut newline_count = 0;
+    for c in res.trim().chars() {
+        if c == '\n' {
+            newline_count += 1;
+            if newline_count <= 2 {
+                cleaned.push(c);
+            }
+        } else {
+            cleaned.push(c);
+            newline_count = 0;
+        }
+    }
+    cleaned.trim().to_string()
+}
+
+fn node_to_markdown_internal(node: scraper::element_ref::ElementRef, in_latex: bool) -> String {
     let mut result = String::new();
     for child in node.children() {
         match child.value() {
@@ -156,57 +195,58 @@ fn node_to_markdown(node: scraper::element_ref::ElementRef) -> String {
                 }
                 
                 let child_node = scraper::ElementRef::wrap(child).unwrap();
-                let child_md = node_to_markdown(child_node);
                 
                 if class.contains("tex-font-style-it") {
-                    result.push_str(&format!("_{}_", child_md.trim()));
+                    let child_md = node_to_markdown_internal(child_node, true);
+                    if in_latex {
+                        result.push_str(&format!("\\mathit{{{}}}", child_md.trim()));
+                    } else {
+                        result.push_str(&format!("$\\mathit{{{}}}$", child_md.trim()));
+                    }
                 } else if class.contains("tex-font-style-bf") {
-                    result.push_str(&format!("**{}**", child_md.trim()));
+                    let child_md = node_to_markdown_internal(child_node, true);
+                    if in_latex {
+                        result.push_str(&format!("\\mathbf{{{}}}", child_md.trim()));
+                    } else {
+                        result.push_str(&format!("$\\mathbf{{{}}}$", child_md.trim()));
+                    }
                 } else if class.contains("tex-font-style-tt") {
-                    result.push_str(&format!("$\\texttt{{{}}}$", child_md.trim()));
-                } else if name == "p" {
-                    result.push_str("\n\n");
-                    result.push_str(&child_md);
-                    result.push_str("\n\n");
-                } else if name == "li" {
-                    result.push_str(&format!("- {}\n", child_md.trim()));
-                } else if name == "ul" {
-                    result.push_str("\n");
-                    result.push_str(&child_md);
-                    result.push_str("\n");
-                } else if name == "br" {
-                    result.push_str("\n");
+                    let child_md = node_to_markdown_internal(child_node, true);
+                    if in_latex {
+                        result.push_str(&format!("\\mathtt{{{}}}", child_md.trim()));
+                    } else {
+                        result.push_str(&format!("$\\mathtt{{{}}}$", child_md.trim()));
+                    }
+                } else if class.contains("tex-span") {
+                    let child_md = node_to_markdown_internal(child_node, true);
+                    if in_latex {
+                        result.push_str(&child_md);
+                    } else {
+                        result.push_str(&format!("${}$", child_md.trim()));
+                    }
                 } else {
-                    result.push_str(&child_md);
+                    let child_md = node_to_markdown_internal(child_node, in_latex);
+                    if name == "p" {
+                        result.push_str("\n\n");
+                        result.push_str(&child_md);
+                        result.push_str("\n\n");
+                    } else if name == "li" {
+                        result.push_str(&format!("- {}\n", child_md.trim()));
+                    } else if name == "ul" {
+                        result.push_str("\n");
+                        result.push_str(&child_md);
+                        result.push_str("\n");
+                    } else if name == "br" {
+                        result.push_str("\n");
+                    } else {
+                        result.push_str(&child_md);
+                    }
                 }
             }
             _ => {}
         }
     }
-    
-    let res = result.replace("&nbsp;", " ")
-                    .replace("&lt;", "<")
-                    .replace("&gt;", ">")
-                    .replace("&amp;", "&")
-                    .replace("&quot;", "\"");
-    
-    let re_adj_math = Regex::new(r"\$\s*\$").unwrap();
-    let res = re_adj_math.replace_all(&res, " ").to_string();
-    
-    let mut cleaned = String::new();
-    let mut newline_count = 0;
-    for c in res.trim().chars() {
-        if c == '\n' {
-            newline_count += 1;
-            if newline_count <= 2 {
-                cleaned.push(c);
-            }
-        } else {
-            cleaned.push(c);
-            newline_count = 0;
-        }
-    }
-    cleaned.trim().to_string()
+    result
 }
 
 fn extract_tier(html: &str) -> String {
