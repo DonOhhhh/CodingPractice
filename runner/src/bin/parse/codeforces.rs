@@ -146,16 +146,6 @@ fn node_to_markdown(node: scraper::element_ref::ElementRef) -> String {
     let re_spaces = Regex::new(r" +").unwrap();
     let res = re_spaces.replace_all(&res, " ").to_string();
 
-    // Clean up spaces around math delimiters
-    // 1. Remove spaces immediately inside $: "$ x $" -> "$x$"
-    let re_math_start = Regex::new(r"\$\s+").unwrap();
-    let res = re_math_start.replace_all(&res, "$").to_string();
-    let re_math_end = Regex::new(r"\s+\$").unwrap();
-    let res = re_math_end.replace_all(&res, "$").to_string();
-
-    // 2. Remove spaces between parentheses and math: "( $" -> "($", "$ )" -> "$)"
-    let res = res.replace("( $", "($").replace("$ )", "$)");
-    
     let mut cleaned = String::new();
     let mut newline_count = 0;
     for c in res.trim().chars() {
@@ -177,7 +167,8 @@ fn node_to_markdown_internal(node: scraper::element_ref::ElementRef, in_latex: b
     for child in node.children() {
         match child.value() {
             Node::Text(text) => {
-                result.push_str(&text);
+                let cleaned = text.replace("$$$", "$").replace('\n', " ").replace('\t', " ");
+                result.push_str(&cleaned);
             }
             Node::Element(elem) => {
                 let name = elem.name();

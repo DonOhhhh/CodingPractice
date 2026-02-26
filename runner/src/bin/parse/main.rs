@@ -11,7 +11,7 @@ fn main() -> anyhow::Result<()> {
     // 1. URL 입력 받기
     let target_url: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("추출할 문제의 URL을 입력하세요")
-        .default("https://codeforces.com/problemset/problem/1915/D".to_string())
+        .default("https://codeforces.com/problemset/problem/1989/B".to_string())
         .interact_text()?;
 
     // CDP 방식은 현재 사용하지 않으므로 기본적으로 FetcherKind::Cookie 사용
